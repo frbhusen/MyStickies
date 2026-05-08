@@ -15,4 +15,4 @@ build/
 *.sqlite3
 staticfiles/
 media/
-.csv
+*.csv

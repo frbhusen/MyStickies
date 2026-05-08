@@ -47,6 +47,7 @@ export default function LazyImage({ src, alt = '', className = '', style = {}, p
         <img
           src={currentSrc}
           alt={alt}
+          loading="lazy"
           onLoad={() => setLoaded(true)}
           {...(HTMLImageElement && 'loading' in HTMLImageElement.prototype ? { loading: 'lazy' } : {})}
           {...props}
