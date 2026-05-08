@@ -1,7 +1,14 @@
+const getRuntimeConfig = () => window.__MY_STICKIES_RUNTIME__ || {}
+
 const normalizeApiBaseUrl = (value) => value.replace(/\/$/, '')
 
 const getDefaultApiBaseUrl = () => {
+  const runtimeBaseUrl = getRuntimeConfig().API_BASE_URL
   const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL
+
+  if (runtimeBaseUrl) {
+    return normalizeApiBaseUrl(runtimeBaseUrl)
+  }
 
   if (configuredBaseUrl) {
     return normalizeApiBaseUrl(configuredBaseUrl)
