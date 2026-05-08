@@ -166,3 +166,7 @@ Notes:
 - The project already uses WhiteNoise for static files and the `collectstatic` step places assets in `backend/staticfiles`.
 - The Nginx template in `deploy/nginx/mystickies.conf` is configured to proxy `/api/` to Gunicorn and serve the frontend `dist` directory; update `server_name` and file paths to match your server.
 
+## Updating The Server After GitHub Push
+
+See [deploy/manual-update-guide.md](deploy/manual-update-guide.md) for the manual pull-and-refresh steps.
+
