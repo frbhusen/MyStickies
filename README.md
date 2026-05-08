@@ -5,7 +5,7 @@ Production-oriented starter for a custom e-commerce platform built for My Sticki
 ## Stack
 
 - Backend: Django + Django REST Framework
-- Database: PostgreSQL or MySQL through Django ORM
+- Database: SQLite (file-based, no server required)
 - Frontend: React (Vite)
 - Deployment: Ubuntu + Gunicorn + Nginx
 
@@ -55,18 +55,26 @@ npm run dev
 
 ## Required Environment Variables
 
-Backend `.env`:
+Backend `.env` (local or production, both use SQLite):
 
 ```env
 DJANGO_SECRET_KEY=change-me
 DJANGO_DEBUG=true
 DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
-DJANGO_DB_ENGINE=django.db.backends.postgresql
-DJANGO_DB_NAME=mystickies
-DJANGO_DB_USER=postgres
-DJANGO_DB_PASSWORD=postgres
-DJANGO_DB_HOST=127.0.0.1
-DJANGO_DB_PORT=5432
+DJANGO_DB_ENGINE=django.db.backends.sqlite3
+DJANGO_DB_NAME=db.sqlite3
+MY_STICKIES_SHIPPING_FEE=100
+```
+
+For production on Ubuntu:
+
+```env
+DJANGO_SECRET_KEY=your-long-random-secret-key
+DJANGO_DEBUG=false
+DJANGO_ALLOWED_HOSTS=mystickies.tech,www.mystickies.tech
+DJANGO_DB_ENGINE=django.db.backends.sqlite3
+DJANGO_DB_NAME=db.sqlite3
+CORS_ALLOWED_ORIGINS=https://mystickies.tech,https://www.mystickies.tech
 MY_STICKIES_SHIPPING_FEE=100
 ```
 
@@ -80,11 +88,11 @@ VITE_API_BASE_URL=http://localhost:8000/api
 
 These are the tested steps to deploy the project on an Ubuntu server using PostgreSQL, Gunicorn and Nginx. Adjust hostnames, paths and secrets for your environment.
 
-- **Server packages**
+- **Server packages** (no database server needed with SQLite)
 
 ```bash
 sudo apt update
-sudo apt install -y python3-venv python3-pip build-essential nginx postgresql postgresql-contrib nodejs npm libpq-dev
+sudo apt install -y python3-venv python3-pip build-essential nginx nodejs npm
 ```
 
 - **Place the app on the server**
