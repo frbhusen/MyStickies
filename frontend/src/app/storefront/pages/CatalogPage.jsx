@@ -1,12 +1,53 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import LazyImage from '../../../components/ui/LazyImage'
-import { fetchCategories, fetchProducts } from '../../../features/catalog/api'
+import { fetchCategories, fetchAllProducts } from '../../../features/catalog/api'
 import { addToCart, getCart } from '../../../features/cart/cartStore'
 import { t } from '../../../lib/i18n'
 
 function unwrapListResponse(data) {
   return Array.isArray(data) ? data : data?.results || []
+}
+
+function sortProducts(products) {
+  return [...products].sort((a, b) => {
+    if (a.sort_order !== b.sort_order) {
+      return (a.sort_order || 999999) - (b.sort_order || 999999)
+    }
+    return (a.name || '').localeCompare(b.name || '')
+  })
+}
+
+function interleaveByCategory(products, categoryOrder) {
+  if (categoryOrder.length === 0) return products
+  
+  const productsByCategory = {}
+  categoryOrder.forEach((catId) => {
+    productsByCategory[catId] = []
+  })
+  
+  products.forEach((product) => {
+    const catId = product.category
+    if (categoryOrder.includes(catId)) {
+      productsByCategory[catId].push(product)
+    }
+  })
+  
+  const result = []
+  let maxProducts = 0
+  Object.values(productsByCategory).forEach((arr) => {
+    maxProducts = Math.max(maxProducts, arr.length)
+  })
+  
+  for (let i = 0; i < maxProducts; i++) {
+    categoryOrder.forEach((catId) => {
+      if (i < productsByCategory[catId].length) {
+        result.push(productsByCategory[catId][i])
+      }
+    })
+  }
+  
+  return result
 }
 
 export default function CatalogPage() {
@@ -16,6 +57,8 @@ export default function CatalogPage() {
   const [query, setQuery] = useState('')
   const [message, setMessage] = useState('')
   const [cartCount, setCartCount] = useState(0)
+  const [pagesLoaded, setPagesLoaded] = useState(1)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   useEffect(() => {
     fetchCategories().then((data) => setCategories(unwrapListResponse(data)))
@@ -27,8 +70,9 @@ export default function CatalogPage() {
     async function loadProducts() {
       const params = new URLSearchParams()
       if (selectedCategoryId !== 'all') params.set('category', selectedCategoryId)
-      const data = await fetchProducts(params)
-      setProducts(unwrapListResponse(data))
+      const data = await fetchAllProducts(params)
+      setProducts(sortProducts(data))
+      setPagesLoaded(1)
     }
     loadProducts()
   }, [selectedCategoryId])
@@ -41,16 +85,38 @@ export default function CatalogPage() {
     return lookup
   }, [categories])
 
+  const categoryOrder = useMemo(() => {
+    if (selectedCategoryId === 'all') {
+      return categories.map((cat) => cat.id)
+    }
+    return []
+  }, [categories, selectedCategoryId])
+
+  const productsPerPage = useMemo(() => {
+    const categoryCount = selectedCategoryId === 'all' ? Math.max(1, categoryOrder.length) : 1
+    return Math.max(24, categoryCount * 3)
+  }, [selectedCategoryId, categoryOrder])
+
+  const balancedProducts = useMemo(() => {
+    if (selectedCategoryId === 'all') {
+      return interleaveByCategory(products, categoryOrder)
+    }
+    return products
+  }, [products, selectedCategoryId, categoryOrder])
+
   const visibleProducts = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return products
-    return products.filter((product) => {
+    const filtered = balancedProducts
+    const pageFiltered = filtered.slice(0, pagesLoaded * productsPerPage)
+    
+    if (!q) return pageFiltered
+    return pageFiltered.filter((product) => {
       const categoryName = String(categoryMap.get(product.category) || '').toLowerCase()
       return [product.name, product.slug, product.short_description, categoryName].some((value) =>
         String(value || '').toLowerCase().includes(q),
       )
     })
-  }, [products, query, categoryMap])
+  }, [balancedProducts, pagesLoaded, productsPerPage, query, categoryMap])
 
   function handleAddToCart(product) {
     const updated = addToCart({
@@ -65,6 +131,16 @@ export default function CatalogPage() {
     setCartCount(updated.reduce((sum, item) => sum + Number(item.quantity || 0), 0))
     setMessage(t('catalog_added_to_cart'))
   }
+
+  function handleLoadMoreProducts() {
+    setIsLoadingMore(true)
+    setTimeout(() => {
+      setPagesLoaded((prev) => prev + 1)
+      setIsLoadingMore(false)
+    }, 220)
+  }
+
+  const hasMoreProducts = visibleProducts.length < balancedProducts.length
 
   return (
     <section className="catalog-page" style={{ marginTop: 24 }}>
@@ -143,6 +219,14 @@ export default function CatalogPage() {
           )
         })}
       </section>
+
+      {hasMoreProducts ? (
+        <div className="catalog-pager">
+          <button className="btn catalog-load-more" type="button" onClick={handleLoadMoreProducts} disabled={isLoadingMore}>
+            {isLoadingMore ? t('loading') : t('catalog_load_more')}
+          </button>
+        </div>
+      ) : null}
     </section>
   )
 }

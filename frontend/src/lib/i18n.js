@@ -37,7 +37,8 @@ const translations = {
     product_add_to_cart: 'Add to cart',
     product_added_to_cart: 'Added to cart',
     product_no_variations: 'No selectable variations',
-    product_images: 'Product images'
+    product_images: 'Product images',
+    catalog_load_more: 'Load more'
   },
   ar: {
     brand: 'ماي ستيكِيز',
@@ -91,7 +92,8 @@ const translations = {
     product_add_to_cart: 'إضافة إلى السلة',
     product_added_to_cart: 'تمت الإضافة إلى السلة',
     product_no_variations: 'لا توجد متغيرات قابلة للاختيار',
-    product_images: 'صور المنتج'
+    product_images: 'صور المنتج',
+    catalog_load_more: 'تحميل المزيد'
   }
 }
 
