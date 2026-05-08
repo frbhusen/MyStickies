@@ -52,15 +52,15 @@ python manage.py createsuperuser
 
 ## 5. Update the frontend
 
-Rebuild the React app so the new code is included in `dist`:
+The frontend bundle is static. If you need to change the API target on the server, edit `/var/www/my-stickies/frontend/dist/runtime-config.js` instead of rebuilding:
 
-```bash
-cd /var/www/my-stickies/frontend
-npm install
-npm run build
+```js
+window.__MY_STICKIES_RUNTIME__ = {
+	API_BASE_URL: 'https://mystickies.tech/api',
+}
 ```
 
-If you changed the API URL or other frontend environment values, update `/var/www/my-stickies/frontend/.env` before building.
+If you changed frontend code, rebuild on your development machine and copy the new `dist/` folder to the server.
 
 ## 6. Restart the backend service
 
@@ -126,10 +126,6 @@ source .venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py collectstatic --noinput
-
-cd ../frontend
-npm install
-npm run build
 
 sudo systemctl restart mystickies-gunicorn
 sudo systemctl reload nginx

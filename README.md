@@ -84,11 +84,11 @@ Frontend `.env`:
 VITE_API_BASE_URL=http://localhost:8000/api
 ```
 
-In production, the frontend defaults to same-origin `/api`, so a build-time API URL is optional unless you want to point the app at a different backend host.
+In production, the frontend also reads `/runtime-config.js` first. That file can override the API base URL at runtime, so you can change the backend target on the server without rebuilding the bundle.
 
 ## Deployment (Ubuntu)
 
-These are the tested steps to deploy the project on an Ubuntu server using PostgreSQL, Gunicorn and Nginx. Adjust hostnames, paths and secrets for your environment.
+These are the tested steps to deploy the project on an Ubuntu server using SQLite, Gunicorn and Nginx. Adjust hostnames, paths and secrets for your environment.
 
 - **Server packages** (no database server needed with SQLite)
 
@@ -119,11 +119,12 @@ python manage.py createsuperuser
 python manage.py collectstatic --noinput
 ```
 
-```bash
-cd /var/www/my-stickies/frontend
-npm install
-npm run build
-# built files will be in frontend/dist
+The frontend is deployed as static files in `frontend/dist`. If you need to change the API target later, edit `frontend/dist/runtime-config.js` after deployment instead of rebuilding the bundle:
+
+```js
+window.__MY_STICKIES_RUNTIME__ = {
+	API_BASE_URL: 'https://mystickies.tech/api',
+}
 ```
 
 - **Gunicorn systemd unit**
@@ -159,6 +160,7 @@ sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
 Notes:
 - The project already uses WhiteNoise for static files and the `collectstatic` step places assets in `backend/staticfiles`.
 - The Nginx template in `deploy/nginx/mystickies.conf` is configured to proxy `/api/` to Gunicorn and serve the frontend `dist` directory; update `server_name` and file paths to match your server.
+- The frontend reads `runtime-config.js` before it falls back to same-origin `/api`, so you can change the API URL by editing one static file.
 
 ## Updating The Server After GitHub Push
 
