@@ -1,4 +1,20 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+const normalizeApiBaseUrl = (value) => value.replace(/\/$/, '')
+
+const getDefaultApiBaseUrl = () => {
+  const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL
+
+  if (configuredBaseUrl) {
+    return normalizeApiBaseUrl(configuredBaseUrl)
+  }
+
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:8000/api'
+  }
+
+  return '/api'
+}
+
+const API_BASE_URL = getDefaultApiBaseUrl()
 const ADMIN_ACCESS_TOKEN_KEY = 'my-stickies-admin-access-token'
 const ADMIN_AUTH_PATHS = ['/admin/auth/login/', '/admin/auth/refresh/']
 

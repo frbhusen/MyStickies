@@ -84,6 +84,8 @@ Frontend `.env`:
 VITE_API_BASE_URL=http://localhost:8000/api
 ```
 
+In production, the frontend defaults to same-origin `/api`, so a build-time API URL is optional unless you want to point the app at a different backend host.
+
 ## Deployment (Ubuntu)
 
 These are the tested steps to deploy the project on an Ubuntu server using PostgreSQL, Gunicorn and Nginx. Adjust hostnames, paths and secrets for your environment.
@@ -115,14 +117,6 @@ cp .env.example .env
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py collectstatic --noinput
-```
-
-- **Frontend build** (serves static files from Nginx)
-
-Edit `frontend/.env` (or set env during build):
-
-```env
-VITE_API_BASE_URL=https://yourdomain.com/api
 ```
 
 ```bash
