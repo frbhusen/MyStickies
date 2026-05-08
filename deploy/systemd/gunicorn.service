@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn for My Stickies backend
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/my-stickies/backend
+Environment="DJANGO_SETTINGS_MODULE=config.settings"
+ExecStart=/var/www/my-stickies/backend/.venv/bin/gunicorn config.wsgi:application --bind 127.0.0.1:8001 --workers 3 --timeout 120
+
+[Install]
+WantedBy=multi-user.target
